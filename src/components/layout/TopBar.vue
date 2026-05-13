@@ -107,17 +107,18 @@ async function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #fff;
+  background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(243,249,247,0.88));
   padding: 0 20px;
   height: 56px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid rgba(72, 148, 122, 0.18);
+  backdrop-filter: blur(8px);
   position: sticky;
   top: 0;
   z-index: 100;
 }
 
 .topbar-left { display: flex; align-items: center; gap: 8px; }
-.collapse-btn { color: #6b7280; font-size: 16px; }
+.collapse-btn { color: #2b6b53; font-size: 16px; }
 .breadcrumb { font-size: 13px; }
 
 .topbar-right { display: flex; align-items: center; gap: 6px; }
@@ -128,6 +129,6 @@ async function handleLogout() {
   cursor: pointer; padding: 4px 8px;
   border-radius: 8px; transition: background 0.15s;
 }
-.user-info:hover { background: #f5f6fa; }
-.user-name { font-size: 13px; color: #1a1d23; font-weight: 500; }
+.user-info:hover { background: rgba(65, 165, 122, 0.12); }
+.user-name { font-size: 13px; color: #1a4f38; font-weight: 600; }
 </style>

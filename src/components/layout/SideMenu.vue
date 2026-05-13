@@ -190,8 +190,9 @@ function onMenuClick({ key }: { key: string }) {
   top: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  background: #fff !important;
-  border-right: 1px solid #f0f0f0;
+  background: linear-gradient(180deg, rgba(250,255,252,0.95), rgba(234,245,241,0.88)) !important;
+  border-right: 1px solid rgba(72, 148, 122, 0.15);
+  box-shadow: 8px 0 26px rgba(23, 83, 59, 0.08);
 }
 
 .logo {
@@ -199,15 +200,20 @@ function onMenuClick({ key }: { key: string }) {
   align-items: center;
   gap: 10px;
   padding: 18px 20px;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid rgba(72, 148, 122, 0.15);
   white-space: nowrap;
   overflow: hidden;
 }
 .logo.collapsed { justify-content: center; padding: 18px 0; }
 .logo-icon { font-size: 22px; flex-shrink: 0; }
-.logo-text { font-size: 15px; font-weight: 600; color: #1a1d23; }
+.logo-text { font-size: 15px; font-weight: 700; color: #14533a; }
 
-.nav-menu { border-right: none !important; padding: 8px 0; }
+.nav-menu { border-right: none !important; padding: 10px 0; background: transparent !important; }
 .nav-menu :deep(.ant-menu-item),
-.nav-menu :deep(.ant-menu-submenu-title) { border-radius: 6px; margin: 2px 8px; width: calc(100% - 16px); }
+.nav-menu :deep(.ant-menu-submenu-title) { border-radius: 10px; margin: 3px 8px; width: calc(100% - 16px); }
+.nav-menu :deep(.ant-menu-item-selected) {
+  background: linear-gradient(135deg, rgba(41, 172, 97, 0.16), rgba(8, 112, 56, 0.24)) !important;
+  color: #0d5e37 !important;
+  font-weight: 600;
+}
 </style>
