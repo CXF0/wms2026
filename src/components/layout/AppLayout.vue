@@ -1,13 +1,18 @@
 <template>
-  <a-layout class="app-layout">
-    <SideMenu />
-    <a-layout class="content-shell">
-      <TopBar />
-      <a-layout-content class="main-content">
-        <RouterView />
-      </a-layout-content>
-    </a-layout>
-  </a-layout>
+  <div class="app-shell">
+    <div class="bg-gradient" />
+    <div class="layout-body">
+      <!-- 侧边栏：独立悬浮卡片 -->
+      <SideMenu />
+      <!-- 右侧：顶栏 + 内容 -->
+      <div class="main-area">
+        <TopBar />
+        <main class="page-content">
+          <RouterView />
+        </main>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -16,22 +21,53 @@ import TopBar from './TopBar.vue'
 </script>
 
 <style scoped>
-.app-layout {
+.app-shell {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at 8% -20%, rgba(90, 225, 179, 0.35), transparent 45%),
-    radial-gradient(circle at 100% 120%, rgba(35, 56, 182, 0.2), transparent 48%),
-    linear-gradient(160deg, #eff5f3 0%, #e8f1f7 100%);
+  position: relative;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', Roboto, sans-serif;
 }
-.content-shell {
-  backdrop-filter: blur(2px);
+
+/* 全局蓝色渐变背景 */
+.bg-gradient {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(145deg, #d6ecfa 0%, #bfe0f5 35%, #c8e8fd 65%, #dff2ff 100%);
+  z-index: 0;
 }
-.main-content {
-  margin: 14px;
-  border-radius: 20px;
-  min-height: calc(100vh - 84px);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(244, 249, 252, 0.9));
-  box-shadow: 0 14px 36px rgba(19, 59, 80, 0.08);
-  overflow: auto;
+
+/* 整体布局：给四周留白，侧边栏和内容区悬浮其上 */
+.layout-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* 右侧主区域 */
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+  /* 顶栏 + 内容共同组成一个圆角卡片容器 */
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(30, 100, 200, 0.08);
+  overflow: hidden;
+}
+
+/* 页面内容区 */
+.page-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  background: transparent;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <a-config-provider :theme="theme">
+  <a-config-provider :theme="antdTheme">
     <RouterView />
   </a-config-provider>
 </template>
@@ -7,18 +7,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { theme as antTheme } from 'ant-design-vue'
-import { useAppStore } from '@/stores/app'
 
-const appStore = useAppStore()
-
-const theme = computed(() => ({
-  algorithm: appStore.darkMode ? antTheme.darkAlgorithm : antTheme.defaultAlgorithm,
+const antdTheme = computed(() => ({
+  algorithm: antTheme.defaultAlgorithm,
   token: {
-    colorPrimary: '#2b85de',
-    colorBgLayout: '#d9eefe',
-    colorBgContainer: 'rgba(241,249,255,0.9)',
-    borderRadius: 14,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    colorPrimary:   '#1a6dd8',
+    colorLink:      '#1a6dd8',
+    borderRadius:   8,
+    fontFamily:     '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Roboto, sans-serif',
+    colorBgContainer: 'rgba(255,255,255,0.82)',
+    boxShadow:      '0 2px 8px rgba(30,100,200,0.08)',
   },
 }))
 </script>

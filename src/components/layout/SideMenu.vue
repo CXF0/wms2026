@@ -1,80 +1,113 @@
 <template>
-  <a-layout-sider
-    v-model:collapsed="appStore.collapsed"
-    :trigger="null"
-    collapsible
-    :width="220"
-    :collapsed-width="64"
-    class="side-menu"
-  >
+  <aside class="sidebar" :class="{ collapsed: appStore.collapsed }">
     <!-- Logo -->
-    <div class="logo" :class="{ collapsed: appStore.collapsed }">
-      <span class="logo-icon">🌸</span>
-      <span v-if="!appStore.collapsed" class="logo-text">花卉 WMS</span>
+    <div class="sidebar-logo">
+      <div class="logo-icon-wrap">
+        <span class="logo-flower">🌸</span>
+      </div>
+      <transition name="fade">
+        <div v-if="!appStore.collapsed" class="logo-text-wrap">
+          <span class="logo-title">寻梦鲜花</span>
+          <span class="logo-sub">WMS</span>
+        </div>
+      </transition>
     </div>
 
-    <!-- Navigation -->
-    <a-menu
-      v-model:selectedKeys="selectedKeys"
-      v-model:openKeys="openKeys"
-      mode="inline"
-      :inline-collapsed="appStore.collapsed"
-      class="nav-menu"
-      @click="onMenuClick"
-    >
-      <template v-for="item in menuItems" :key="item.key">
-        <!-- 有子菜单 -->
-        <a-sub-menu v-if="item.children?.length" :key="item.key">
-          <template #icon><component :is="item.icon" /></template>
-          <template #title>{{ item.label }}</template>
-          <a-menu-item v-for="child in item.children" :key="child.key">
-            {{ child.label }}
-          </a-menu-item>
-        </a-sub-menu>
+    <!-- 导航 -->
+    <nav class="sidebar-nav">
+      <div v-for="item in menuItems" :key="item.key" class="nav-group">
         <!-- 无子菜单 -->
-        <a-menu-item v-else :key="item.key">
-          <template #icon><component :is="item.icon" /></template>
-          <span>{{ item.label }}</span>
-        </a-menu-item>
-      </template>
-    </a-menu>
-  </a-layout-sider>
+        <div
+          v-if="!item.children?.length"
+          class="nav-item"
+          :class="{ active: isActive(item.key) }"
+          @click="navigate(item.key)"
+        >
+          <i class="iconfont nav-icon" :class="item.icon" />
+          <transition name="fade">
+            <span v-if="!appStore.collapsed" class="nav-label">{{ item.label }}</span>
+          </transition>
+        </div>
+
+        <!-- 有子菜单 -->
+        <template v-else>
+          <div
+            class="nav-item nav-parent"
+            :class="{ 'is-open': openGroups.includes(item.key), 'has-active': hasActiveChild(item) }"
+            @click="toggleGroup(item.key)"
+          >
+            <i class="iconfont nav-icon" :class="item.icon" />
+            <transition name="fade">
+              <span v-if="!appStore.collapsed" class="nav-label">{{ item.label }}</span>
+            </transition>
+            <transition name="fade">
+              <i
+                v-if="!appStore.collapsed"
+                class="iconfont icon-a-xiala2 nav-arrow"
+                :class="{ rotated: openGroups.includes(item.key) }"
+              />
+            </transition>
+          </div>
+
+          <transition name="expand">
+            <div v-if="!appStore.collapsed && openGroups.includes(item.key)" class="nav-children">
+              <div
+                v-for="child in item.children"
+                :key="child.key"
+                class="nav-child"
+                :class="{ active: isActive(child.key) }"
+                @click="navigate(child.key)"
+              >
+                <span class="child-bullet" />
+                <span>{{ child.label }}</span>
+              </div>
+            </div>
+          </transition>
+        </template>
+      </div>
+    </nav>
+
+    <!-- 底部折叠 -->
+    <div class="sidebar-bottom">
+      <button class="collapse-btn" @click="appStore.toggleCollapsed()">
+        <i class="iconfont" :class="appStore.collapsed ? 'icon-a-xiala2 rotate-left' : 'icon-a-xiala2 rotate-right'" />
+        <transition name="fade">
+          <span v-if="!appStore.collapsed" class="collapse-label">收起菜单</span>
+        </transition>
+      </button>
+    </div>
+  </aside>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, h } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import {
-  DashboardOutlined, AppstoreOutlined, PrinterOutlined,
-  FileSearchOutlined, WarningOutlined, TeamOutlined,
-  SwapOutlined, MoneyCollectOutlined, InboxOutlined,
-  SafetyOutlined, MobileOutlined,
-} from '@ant-design/icons-vue'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
 
-const appStore   = useAppStore()
-const userStore  = useUserStore()
-const route  = useRoute()
-const router = useRouter()
+const appStore  = useAppStore()
+const userStore = useUserStore()
+const route     = useRoute()
+const router    = useRouter()
+const openGroups = ref<string[]>([])
 
-const selectedKeys = ref<string[]>([])
-const openKeys     = ref<string[]>([])
-
-// 菜单配置（与 router 路由名保持一致）
 const ALL_MENUS = [
   {
-    key: 'dashboard-group', label: '数据看板', icon: h(DashboardOutlined),
+    key: 'dashboard-group',
+    label: '数据看板',
+    icon: 'icon-shuju',
     roles: ['admin', 'region_mgr'],
     children: [
-      { key: '/dashboard',            label: '数据总览' },
-      { key: '/dashboard/transport',  label: '集货运输' },
-      { key: '/dashboard/picking',    label: '配货效能' },
-      { key: '/dashboard/packing',    label: '打包发货' },
+      { key: '/dashboard',           label: '数据总览' },
+      { key: '/dashboard/transport', label: '集货运输' },
+      { key: '/dashboard/picking',   label: '配货效能' },
+      { key: '/dashboard/packing',   label: '打包发货' },
     ],
   },
   {
-    key: 'rack-group', label: '货位管理', icon: h(AppstoreOutlined),
+    key: 'rack-group',
+    label: '货位管理',
+    icon: 'icon-peihuopeizhi',
     roles: ['admin'],
     children: [
       { key: '/rack-config', label: '分区配置' },
@@ -83,7 +116,9 @@ const ALL_MENUS = [
     ],
   },
   {
-    key: 'print-group', label: '单据打印', icon: h(PrinterOutlined),
+    key: 'print-group',
+    label: '单据打印',
+    icon: 'icon-dabao',
     roles: ['admin', 'logistics'],
     children: [
       { key: '/print/delivery', label: '发货单打印' },
@@ -91,7 +126,9 @@ const ALL_MENUS = [
     ],
   },
   {
-    key: 'records-group', label: '记录查询', icon: h(FileSearchOutlined),
+    key: 'records-group',
+    label: '记录查询',
+    icon: 'icon-shaixuan',
     roles: ['admin', 'region_mgr', 'inspector', 'logistics'],
     children: [
       { key: '/records/inspection', label: '质检记录' },
@@ -101,7 +138,9 @@ const ALL_MENUS = [
     ],
   },
   {
-    key: 'penalty-group', label: '处罚管理', icon: h(WarningOutlined),
+    key: 'penalty-group',
+    label: '处罚管理',
+    icon: 'icon-tishi',
     roles: ['admin', 'inspector_patrol'],
     children: [
       { key: '/penalty/business',  label: '业务处罚' },
@@ -109,7 +148,9 @@ const ALL_MENUS = [
     ],
   },
   {
-    key: 'staff-group', label: '人员管理', icon: h(TeamOutlined),
+    key: 'staff-group',
+    label: '人员管理',
+    icon: 'icon-guanliyuan',
     roles: ['admin', 'region_mgr'],
     children: [
       { key: '/staff/accounts',   label: '账户管理' },
@@ -119,12 +160,16 @@ const ALL_MENUS = [
     ],
   },
   {
-    key: '/proxy', label: '代配管理', icon: h(SwapOutlined),
+    key: '/proxy',
+    label: '代配管理',
+    icon: 'icon-fuzhi',
     roles: ['admin', 'region_mgr'],
     children: [],
   },
   {
-    key: 'salary-group', label: '工资管理', icon: h(MoneyCollectOutlined),
+    key: 'salary-group',
+    label: '工资管理',
+    icon: 'icon-paihangbang',
     roles: ['admin'],
     children: [
       { key: '/salary/monthly',    label: '月度汇总' },
@@ -133,7 +178,9 @@ const ALL_MENUS = [
     ],
   },
   {
-    key: 'supply-group', label: '物资管理', icon: h(InboxOutlined),
+    key: 'supply-group',
+    label: '物资管理',
+    icon: 'icon-buhuoguanli',
     roles: ['admin', 'supply_mgr'],
     children: [
       { key: '/supply/stock',    label: '库存管理' },
@@ -143,7 +190,9 @@ const ALL_MENUS = [
     ],
   },
   {
-    key: 'permission-group', label: '角色权限', icon: h(SafetyOutlined),
+    key: 'permission-group',
+    label: '角色权限',
+    icon: 'icon-anquan',
     roles: ['admin'],
     children: [
       { key: '/permission/roles', label: '角色管理' },
@@ -151,69 +200,169 @@ const ALL_MENUS = [
     ],
   },
   {
-    key: '/app-version', label: 'APP版本', icon: h(MobileOutlined),
+    key: '/app-version',
+    label: 'APP版本',
+    icon: 'icon-kuguanfahuo',
     roles: ['admin'],
     children: [],
   },
 ]
 
-// 根据角色过滤菜单
 const menuItems = computed(() => {
   const role = userStore.role
   if (!role) return []
-  return ALL_MENUS.filter(item => !item.roles || item.roles.includes(role))
+  return ALL_MENUS.filter(m => !m.roles || m.roles.includes(role))
 })
 
-// 同步当前路由到选中状态
-watch(() => route.path, (path) => {
-  selectedKeys.value = [path]
-  // 自动展开父级
+const isActive       = (key: string) => route.path === key || route.path.startsWith(key + '/')
+const hasActiveChild = (item: typeof ALL_MENUS[0]) => item.children?.some(c => isActive(c.key))
+
+function toggleGroup(key: string) {
+  const i = openGroups.value.indexOf(key)
+  if (i === -1) openGroups.value.push(key)
+  else openGroups.value.splice(i, 1)
+}
+
+function navigate(key: string) {
+  if (key.startsWith('/')) router.push(key)
+}
+
+watch(() => route.path, path => {
   for (const item of menuItems.value) {
-    if (item.children?.some(c => c.key === path)) {
-      if (!openKeys.value.includes(item.key)) {
-        openKeys.value = [...openKeys.value, item.key]
-      }
-      break
+    if (item.children?.some(c => path === c.key || path.startsWith(c.key + '/'))) {
+      if (!openGroups.value.includes(item.key)) openGroups.value.push(item.key)
     }
   }
 }, { immediate: true })
-
-function onMenuClick({ key }: { key: string }) {
-  if (key.startsWith('/')) router.push(key)
-}
 </script>
 
 <style scoped>
-.side-menu {
-  height: 100vh;
-  position: sticky;
-  top: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  background: linear-gradient(180deg, rgba(250,255,252,0.95), rgba(234,245,241,0.88)) !important;
-  border-right: 1px solid rgba(72, 148, 122, 0.15);
-  box-shadow: 8px 0 26px rgba(23, 83, 59, 0.08);
-}
-
-.logo {
+.sidebar {
+  width: 228px;
+  flex-shrink: 0;
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 18px 20px;
-  border-bottom: 1px solid rgba(72, 148, 122, 0.15);
-  white-space: nowrap;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(30, 100, 200, 0.08);
+  padding: 16px 12px;
+  transition: width 0.25s ease;
   overflow: hidden;
 }
-.logo.collapsed { justify-content: center; padding: 18px 0; }
-.logo-icon { font-size: 22px; flex-shrink: 0; }
-.logo-text { font-size: 15px; font-weight: 700; color: #14533a; }
+.sidebar.collapsed { width: 68px; }
 
-.nav-menu { border-right: none !important; padding: 10px 0; background: transparent !important; }
-.nav-menu :deep(.ant-menu-item),
-.nav-menu :deep(.ant-menu-submenu-title) { border-radius: 10px; margin: 3px 8px; width: calc(100% - 16px); }
-.nav-menu :deep(.ant-menu-item-selected) {
-  background: linear-gradient(135deg, rgba(41, 172, 97, 0.16), rgba(8, 112, 56, 0.24)) !important;
-  color: #0d5e37 !important;
-  font-weight: 600;
+/* Logo */
+.sidebar-logo {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 8px 18px;
+  white-space: nowrap;
 }
+.logo-icon-wrap {
+  width: 38px; height: 38px; border-radius: 11px;
+  background: linear-gradient(135deg, #e8f4ff 0%, #d0eaff 100%);
+  box-shadow: 0 2px 8px rgba(26,109,216,0.12);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.logo-flower { font-size: 18px; }
+.logo-text-wrap { display: flex; flex-direction: column; gap: 1px; }
+.logo-title { font-size: 14px; font-weight: 700; color: #1a2e50; letter-spacing: -0.2px; }
+.logo-sub   { font-size: 10px; color: #78a8cc; letter-spacing: 1.5px; font-weight: 500; }
+
+/* 导航 */
+.sidebar-nav {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  display: flex; flex-direction: column; gap: 2px;
+  padding-right: 2px;
+}
+.sidebar-nav::-webkit-scrollbar { width: 3px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(100,160,220,0.2); border-radius: 2px; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 11px; border-radius: 10px;
+  cursor: pointer; color: #4a6888;
+  font-size: 13px; font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+  user-select: none;
+}
+.nav-item:hover { background: rgba(255,255,255,0.75); color: #1a5db8; }
+.nav-item.active,
+.nav-item.has-active {
+  background: rgba(255,255,255,0.88);
+  color: #1a5db8; font-weight: 600;
+  box-shadow: 0 2px 8px rgba(26,100,216,0.1);
+}
+.nav-item.is-open { color: #1a5db8; }
+
+/* iconfont 图标 */
+.nav-icon {
+  font-size: 17px;
+  width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: inherit;
+}
+
+.nav-label { flex: 1; }
+
+.nav-arrow {
+  font-size: 11px; color: #90b8d8;
+  transition: transform 0.22s;
+  display: inline-flex; align-items: center;
+}
+.nav-arrow.rotated { transform: rotate(-180deg); }
+
+/* 子菜单 */
+.nav-children {
+  margin: 2px 0 4px 26px;
+  display: flex; flex-direction: column; gap: 1px;
+}
+.nav-child {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: 8px;
+  cursor: pointer; font-size: 12.5px; color: #5a7a9a;
+  transition: background 0.12s, color 0.12s;
+  user-select: none;
+}
+.nav-child:hover { background: rgba(255,255,255,0.65); color: #1a5db8; }
+.nav-child.active { background: rgba(255,255,255,0.82); color: #1a5db8; font-weight: 600; }
+.child-bullet {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: #a8c8e8; flex-shrink: 0;
+  transition: background 0.15s;
+}
+.nav-child.active .child-bullet { background: #1a6dd8; }
+
+/* 底部折叠 */
+.sidebar-bottom {
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid rgba(180,215,248,0.35);
+}
+.collapse-btn {
+  width: 100%; height: 36px;
+  border: none; border-radius: 9px; background: transparent;
+  cursor: pointer; color: #7aaac8; font-size: 13px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: background 0.15s, color 0.15s;
+  font-family: inherit;
+}
+.collapse-btn:hover { background: rgba(255,255,255,0.75); color: #1a5db8; }
+.collapse-label { font-size: 12.5px; }
+
+/* 折叠按钮箭头方向 */
+.rotate-right { transform: rotate(-90deg); display: inline-flex; }
+.rotate-left  { transform: rotate(90deg);  display: inline-flex; }
+
+/* 动画 */
+.fade-enter-active, .fade-leave-active { transition: opacity 0.15s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+.expand-enter-active { transition: all 0.2s ease; }
+.expand-leave-active { transition: all 0.15s ease; }
+.expand-enter-from   { opacity: 0; transform: translateY(-4px); }
+.expand-leave-to     { opacity: 0; transform: translateY(-3px); }
 </style>
