@@ -245,9 +245,11 @@ router.beforeEach(async (to, _from, next) => {
   if (to.meta.public) return next()
   if (!userStore.isLoggedIn) return next({ name: 'Login', query: { redirect: to.fullPath } })
 
+  // userInfo 由 pinia-persistedstate 自动恢复，无需再请求接口
+  // 若 token 有但 userInfo 丢失（极少数情况），踢回登录重新登录
   if (!userStore.userInfo) {
-    try { await userStore.fetchMe() }
-    catch { userStore.clear(); return next({ name: 'Login' }) }
+    userStore.clear()
+    return next({ name: 'Login', query: { redirect: to.fullPath } })
   }
 
   const allowed = to.meta.roles as string[] | undefined

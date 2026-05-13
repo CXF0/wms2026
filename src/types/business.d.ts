@@ -64,20 +64,44 @@ export interface CollectionStation {
 //  二、用户与角色
 // ============================================================
 
-export interface LoginParams { username: string; password: string }
+// 登录请求参数（对应接口 /login/sub）
+export interface LoginParams {
+  userName: string
+  password: string
+  type: number  // 1: 兼职登录  2: 跳转登录  3: 扫码枪登录
+}
 
-export interface UserInfo {
+// 角色信息（接口返回）
+export interface RoleInfo {
   id: number
-  username: string
-  realName: string
+  roleName: string
+}
+
+// 供应商基本信息（接口返回）
+export interface SupplierBaseInfo {
+  firstChar?: string
+  id: number
+  latestCheckTime?: string
+  loginTel?: string
+  operatorType?: number   // 0: 非自运营  1: 自运营
+  supplierName?: string
+  supplierTag?: string
+  token?: string
+}
+
+// 登录接口返回的用户信息（接口字段保持原样，方便直接使用）
+export interface UserInfo {
+  token: string
+  id: number
+  userName: string
+  sex?: number            // 0: 未知  1: 男  2: 女
+  nickname: string        // 姓名（展示用）
   phone?: string
+  description?: string
+  roleList: RoleInfo[]
+  supplierBaseVo?: SupplierBaseInfo
+  // 前端派生字段（登录后根据 roleList 计算）
   role: UserRole
-  roleId: number
-  // 数据权限范围
-  regionIds?: number[]      // 大区负责人
-  zoneIds?: number[]        // 分区主管及以下
-  baseIds?: number[]        // 基地相关角色
-  avatar?: string
 }
 
 /**

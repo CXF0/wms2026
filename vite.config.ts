@@ -16,7 +16,14 @@ export default defineConfig(({ mode }) => {
     resolve: { alias: { '@': resolve(__dirname, 'src') } },
     server: {
       host: '0.0.0.0', port: 3000, open: true,
-      proxy: { '/api': { target: env.VITE_API_BASE_URL, changeOrigin: true, rewrite: p => p.replace(/^\/api/, '') } },
+      proxy: {
+        '/api': {
+          target: 'https://api.xunmengvip.cn',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (p) => p.replace(/^\/api/, '/xm-bulky-supplier'),
+        },
+      },
     },
     build: {
       target: 'es2015', sourcemap: mode !== 'production',

@@ -15,9 +15,16 @@ import type {
 
 // ─── 认证 ────────────────────────────────────────────────────
 export const authApi = {
-  login:   (data: LoginParams) => http.post<{ token: string }>('/auth/login', data),
-  getMe:   ()                  => http.get<UserInfo>('/auth/me'),
-  logout:  ()                  => http.post('/auth/logout'),
+  /**
+   * 子账号密码登录
+   * POST /xm-bulky-supplier/login/sub
+   * type: 1=兼职登录（WEB端固定传 1）
+   */
+  login: (data: LoginParams) =>
+    http.post<UserInfo>('/login/sub', data),
+
+  logout: () =>
+    http.post('/auth/logout'),
 }
 
 // ─── 组织结构 ─────────────────────────────────────────────────
