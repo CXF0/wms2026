@@ -1,0 +1,40 @@
+:root {
+  --bg-main: #d7ebf9;
+  --bg-panel: rgba(232, 244, 252, 0.9);
+  --line-soft: rgba(117, 168, 201, 0.25);
+  --text-main: #173a58;
+}
+
+body {
+  background: radial-gradient(circle at 0% 50%, #62b9f2 0%, transparent 32%),
+    linear-gradient(135deg, #c9e4f7 0%, #dbeefe 50%, #c6e2f6 100%);
+  color: var(--text-main);
+}
+
+#app { min-height: 100vh; }
+
+.ant-card,
+.ant-table-wrapper,
+.ant-modal-content,
+.ant-picker-panel,
+.ant-select-dropdown,
+.ant-dropdown-menu {
+  border-radius: 18px !important;
+  border: 1px solid var(--line-soft) !important;
+  box-shadow: 0 16px 28px rgba(70, 122, 160, 0.12) !important;
+}
+
+.ant-table,
+.ant-table-container,
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-select-selector,
+.ant-picker {
+  background: rgba(245, 251, 255, 0.9) !important;
+}
+
+.ant-btn-primary {
+  background: linear-gradient(135deg, #4aa3ff, #2176d6) !important;
+  border-color: transparent !important;
+  box-shadow: 0 10px 16px rgba(33, 118, 214, 0.24);
+}
