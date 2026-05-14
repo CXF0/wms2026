@@ -95,7 +95,7 @@ const ALL_MENUS = [
   {
     key: 'dashboard-group',
     label: '数据看板',
-    icon: 'icon-shuju',
+    icon: 'icon-paihangbang',
     roles: ['admin', 'region_mgr'],
     children: [
       { key: '/dashboard',           label: '数据总览' },
@@ -107,7 +107,7 @@ const ALL_MENUS = [
   {
     key: 'rack-group',
     label: '货位管理',
-    icon: 'icon-peihuopeizhi',
+    icon: 'icon-kabao',
     roles: ['admin'],
     children: [
       { key: '/rack-config', label: '分区配置' },
@@ -118,7 +118,7 @@ const ALL_MENUS = [
   {
     key: 'print-group',
     label: '单据打印',
-    icon: 'icon-dabao',
+    icon: 'icon-zaixianyanzi',
     roles: ['admin', 'logistics'],
     children: [
       { key: '/print/delivery', label: '发货单打印' },
@@ -128,7 +128,7 @@ const ALL_MENUS = [
   {
     key: 'records-group',
     label: '记录查询',
-    icon: 'icon-shaixuan',
+    icon: 'icon-xitongguanliyuanrizhi',
     roles: ['admin', 'region_mgr', 'inspector', 'logistics'],
     children: [
       { key: '/records/inspection', label: '质检记录' },
@@ -140,7 +140,7 @@ const ALL_MENUS = [
   {
     key: 'penalty-group',
     label: '处罚管理',
-    icon: 'icon-tishi',
+    icon: 'icon-jubao',
     roles: ['admin', 'inspector_patrol'],
     children: [
       { key: '/penalty/business',  label: '业务处罚' },
@@ -162,14 +162,14 @@ const ALL_MENUS = [
   {
     key: '/proxy',
     label: '代配管理',
-    icon: 'icon-fuzhi',
+    icon: 'icon-daimaidan',
     roles: ['admin', 'region_mgr'],
     children: [],
   },
   {
     key: 'salary-group',
     label: '工资管理',
-    icon: 'icon-paihangbang',
+    icon: 'icon-tijiaoyanzi',
     roles: ['admin'],
     children: [
       { key: '/salary/monthly',    label: '月度汇总' },
@@ -180,7 +180,7 @@ const ALL_MENUS = [
   {
     key: 'supply-group',
     label: '物资管理',
-    icon: 'icon-buhuoguanli',
+    icon: 'icon-fenxiang1',
     roles: ['admin', 'supply_mgr'],
     children: [
       { key: '/supply/stock',    label: '库存管理' },

@@ -6,25 +6,25 @@
     <!-- 左侧装饰区 -->
     <div class="left-panel">
       <div class="left-content">
-        <div class="brand-logo">🌸</div>
-        <h1 class="brand-title">寻梦鲜花</h1>
-        <p class="brand-desc">分拣发货中心管理平台</p>
+        <div class="brand-logo"><icon name="icon-guanliyuan"></icon></div>
+        <h1 class="brand-title">寻梦鲜花 WMS</h1>
+        <p class="brand-desc">智慧仓储・精准分拣・高效发货</p>
 
         <div class="feature-list">
           <div class="feature-item">
-            <span class="feature-icon">📦</span>
+            <span class="feature-icon"><i class="iconfont icon-kabao"></i></span>
             <span>货位智能分配管理</span>
           </div>
           <div class="feature-item">
-            <span class="feature-icon">📊</span>
+            <span class="feature-icon"><i class="iconfont icon-paihangbang"></i></span>
             <span>实时数据看板监控</span>
           </div>
           <div class="feature-item">
-            <span class="feature-icon">🚚</span>
-            <span>物流配送全流程追踪</span>
+            <span class="feature-icon"><i class="iconfont icon-kuguanfahuo"></i></span>
+            <span>集货运输全流程追踪</span>
           </div>
           <div class="feature-item">
-            <span class="feature-icon">👥</span>
+            <span class="feature-icon"><i class="iconfont icon-guanliyuan"></i></span>
             <span>人员效能分析管理</span>
           </div>
         </div>
@@ -91,7 +91,7 @@
           </a-button>
         </a-form>
 
-        <p class="copyright">© {{ new Date().getFullYear() }} 寻梦鲜花供应链管理平台</p>
+        <p class="copyright">© {{ new Date().getFullYear() }} 寻梦鲜花 WMS</p>
       </div>
     </div>
   </div>
@@ -167,8 +167,8 @@ async function handleLogin() {
 }
 
 .brand-title {
-  font-size: 36px;
-  font-weight: 800;
+  font-size: 32px;
+  font-weight: 700;
   color: #1a3a6a;
   margin: 0 0 8px;
   letter-spacing: -0.5px;
@@ -177,7 +177,7 @@ async function handleLogin() {
 .brand-desc {
   font-size: 16px;
   color: #4a7aaa;
-  margin: 0 0 48px;
+  margin: 0 5px 48px;
   font-weight: 400;
 }
 
