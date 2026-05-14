@@ -1,314 +1,372 @@
 <template>
   <div class="rack-page">
+    <!-- 页头 -->
     <div class="page-header">
-      <div>
+      <div class="header-left">
         <h1 class="page-title">货位管理</h1>
-        <p class="page-sub">仓库分区、货架配置及排序规则</p>
+        <p class="page-sub">分区货位概览，点击区卡片查看详情</p>
       </div>
-      <a-tabs v-model:activeKey="activeTab" class="header-tabs">
-        <a-tab-pane key="racks"    tab="分区货架配置" />
-        <a-tab-pane key="box-type" tab="件型配置" />
-        <a-tab-pane key="nfc"      tab="NFC管理" />
-      </a-tabs>
+      <div class="header-right">
+        <a-date-picker
+          v-model:value="dateVal"
+          :allow-clear="false"
+          format="YYYY-MM-DD"
+          value-format="YYYY-MM-DD"
+          @change="onDateChange"
+          style="width:140px"
+        />
+        <a-button @click="fetchAll" :loading="loadingZones">
+          <ReloadOutlined /> 刷新
+        </a-button>
+      </div>
     </div>
 
-    <!-- 分区货架配置 -->
-    <template v-if="activeTab === 'racks'">
-      <div class="layout-2col">
-        <!-- 左：大区 + 分区树 -->
-        <div class="col-left">
-          <div class="panel">
-            <div class="panel-head">
-              <span class="panel-title">大区 / 分区</span>
-              <div class="panel-actions">
-                <a-button size="small" @click="openRegionModal()"><PlusOutlined /> 大区</a-button>
-                <a-button size="small" type="primary" :disabled="!selectedRegionId" @click="openZoneModal()">
-                  <PlusOutlined /> 分区
-                </a-button>
-              </div>
-            </div>
+    <!-- 整体统计 -->
+    <div class="overview-bar" v-if="overallStat">
+      <div class="ov-stat">
+        <span class="ov-num">{{ zoneNames.length }}</span>
+        <span class="ov-label">分区数</span>
+      </div>
+      <div class="ov-divider"></div>
+      <div class="ov-stat">
+        <span class="ov-num">{{ overallStat.totalShelves }}</span>
+        <span class="ov-label">货架总数</span>
+      </div>
+      <div class="ov-divider"></div>
+      <div class="ov-stat text-blue">
+        <span class="ov-num">{{ overallStat.need }}</span>
+        <span class="ov-label">可配货</span>
+      </div>
+      <div class="ov-divider"></div>
+      <div class="ov-stat text-green">
+        <span class="ov-num">{{ overallStat.prepared }}</span>
+        <span class="ov-label">配货完成</span>
+      </div>
+      <div class="ov-divider"></div>
+      <div class="ov-stat text-orange" v-if="overallStat.totalShelves > 0">
+        <span class="ov-num">{{ Math.round(overallStat.prepared / overallStat.totalShelves * 100) }}%</span>
+        <span class="ov-label">整体进度</span>
+      </div>
+    </div>
 
-            <a-spin :spinning="loadingTree">
-              <a-tree
-                v-if="treeData.length"
-                v-model:selectedKeys="treeSelected"
-                :tree-data="treeData"
-                :field-names="{ title: 'name', key: 'key', children: 'children' }"
-                default-expand-all
-                block-node
-                class="region-tree"
-                @select="onTreeSelect"
-              >
-                <template #title="node">
-                  <div class="tree-node">
-                    <span class="node-label">{{ node.name }}</span>
-                    <span v-if="node.type === 'region'" class="node-badge region">大区</span>
-                    <span v-else class="node-badge zone">分区</span>
-                    <div class="node-actions">
-                      <a-button type="text" size="small" @click.stop="editNode(node)"><EditOutlined /></a-button>
-                      <a-popconfirm
-                        title="确认删除？"
-                        @confirm="deleteNode(node)"
-                        @click.stop
-                      >
-                        <a-button type="text" size="small" danger><DeleteOutlined /></a-button>
-                      </a-popconfirm>
-                    </div>
-                  </div>
-                </template>
-              </a-tree>
-              <a-empty v-else description="暂无大区，请先创建" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
-            </a-spin>
-          </div>
-        </div>
+    <!-- 分区卡片网格 -->
+    <a-spin :spinning="loadingZones" tip="加载分区数据...">
+      <div v-if="!loadingZones && zoneNames.length === 0" class="empty-wrap">
+        <a-empty description="暂无分区数据" />
+      </div>
 
-        <!-- 右：货架列表 -->
-        <div class="col-right">
-          <div class="panel">
-            <div class="panel-head">
-              <div class="panel-title-wrap">
-                <span class="panel-title">
-                  {{ selectedZoneName ? `${selectedZoneName} — 货架列表` : '请选择分区' }}
-                </span>
-                <a-tag v-if="selectedZoneId" color="blue">{{ racks.length }} 个货架</a-tag>
-              </div>
-              <div class="panel-actions" v-if="selectedZoneId">
-                <a-button size="small" @click="openSortRuleModal">
-                  <SortAscendingOutlined /> 排序规则
-                </a-button>
-                <a-button size="small" @click="openBatchModal">
-                  <AppstoreAddOutlined /> 批量添加
-                </a-button>
-                <a-button size="small" type="primary" @click="openRackModal()">
-                  <PlusOutlined /> 添加货架
-                </a-button>
-              </div>
-            </div>
+      <div v-else class="zone-grid">
+        <div
+          v-for="zone in zoneInfoMap"
+          :key="zone.name"
+          class="zone-card"
+          @click="goToDetail(zone.name)"
+        >
+          <!-- 加载骨架 -->
+          <template v-if="zone.loading">
+            <a-skeleton active :paragraph="{ rows: 3 }" />
+          </template>
 
-            <a-spin :spinning="loadingRacks">
-              <div v-if="!selectedZoneId" class="select-hint">
-                <ApartmentOutlined class="hint-icon" />
-                <p>从左侧选择分区查看货架</p>
+          <template v-else>
+            <!-- 区名 + 进度环 -->
+            <div class="zone-card-head">
+              <div class="zone-name-wrap">
+                <div class="zone-icon">
+                  <AppstoreOutlined />
+                </div>
+                <div>
+                  <div class="zone-name">{{ zone.name }}</div>
+                  <div class="zone-shelf-count">{{ zone.shelfSnList?.length ?? 0 }} 个货架</div>
+                </div>
               </div>
-
-              <div v-else-if="racks.length === 0" class="select-hint">
-                <InboxOutlined class="hint-icon" />
-                <p>该分区暂无货架</p>
-              </div>
-
-              <div v-else class="racks-grid">
-                <RackCard
-                  v-for="rack in racks"
-                  :key="rack.id"
-                  :rack="rack"
-                  @edit="openRackModal(rack)"
-                  @delete="deleteRack(rack)"
+              <div class="zone-progress-ring">
+                <a-progress
+                  type="circle"
+                  :percent="zone.progressPct"
+                  :width="54"
+                  :stroke-color="zone.progressPct >= 100 ? '#52c41a' : '#5b72ee'"
+                  :trail-color="'#f0f2f5'"
                 />
               </div>
-            </a-spin>
-          </div>
+            </div>
+
+            <!-- 数量统计 -->
+            <div class="zone-stats">
+              <div class="zone-stat">
+                <span class="zs-num text-blue">{{ zone.need }}</span>
+                <span class="zs-label">可配货</span>
+              </div>
+              <div class="zone-stat-divider"></div>
+              <div class="zone-stat">
+                <span class="zs-num text-green">{{ zone.prepared }}</span>
+                <span class="zs-label">已完成</span>
+              </div>
+              <div class="zone-stat-divider"></div>
+              <div class="zone-stat">
+                <span class="zs-num">{{ (zone.need ?? 0) + (zone.prepared ?? 0) }}</span>
+                <span class="zs-label">总计</span>
+              </div>
+            </div>
+
+            <!-- 货架状态小点阵 -->
+            <div class="shelf-dots" v-if="zone.shelfSnList?.length">
+              <a-tooltip
+                v-for="shelf in zone.shelfSnList.slice(0, 20)"
+                :key="shelf.shelfSn"
+                :title="`${shelf.zoneShelf} #${shelf.shelfSn}  ${shelf.prepared}/${shelf.total}`"
+                placement="top"
+              >
+                <span
+                  class="shelf-dot"
+                  :class="shelf.status === 1 ? 'dot-done' : 'dot-picking'"
+                ></span>
+              </a-tooltip>
+              <span v-if="zone.shelfSnList.length > 20" class="dots-more">
+                +{{ zone.shelfSnList.length - 20 }}
+              </span>
+            </div>
+
+            <!-- 底部 CTA -->
+            <div class="zone-card-foot">
+              <span class="view-detail-btn">
+                查看货位详情 <RightOutlined />
+              </span>
+            </div>
+          </template>
         </div>
       </div>
-    </template>
-
-    <!-- 件型配置 -->
-    <BoxTypeConfig v-if="activeTab === 'box-type'" />
-
-    <!-- NFC管理 -->
-    <NfcManage v-if="activeTab === 'nfc'" />
-
-    <!-- 弹窗 -->
-    <RegionModal   v-model:open="regionModalOpen"  :editing="editingRegion"  @saved="onRegionSaved" />
-    <ZoneModal     v-model:open="zoneModalOpen"    :editing="editingZone"   :region-id="selectedRegionId" @saved="onZoneSaved" />
-    <RackModal     v-model:open="rackModalOpen"    :editing="editingRack"   :zone-id="selectedZoneId!"    @saved="onRackSaved" />
-    <BatchRackModal v-model:open="batchModalOpen"  :zone-id="selectedZoneId!" :zone-name="selectedZoneName" @saved="fetchRacks" />
-    <SortRuleModal v-model:open="sortRuleModalOpen" :zone-id="selectedZoneId!" :zone-name="selectedZoneName" />
+    </a-spin>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { Empty } from 'ant-design-vue'
-import {
-  PlusOutlined, EditOutlined, DeleteOutlined,
-  SortAscendingOutlined, AppstoreAddOutlined,
-  ApartmentOutlined, InboxOutlined,
-} from '@ant-design/icons-vue'
-import { message as AMessage } from 'ant-design-vue'
-import { regionApi, zoneApi, rackApi } from '@/api'
-import type { Region, Zone, PhysicalRack } from '@/types/business'
-import RackCard       from './components/RackCard.vue'
-import RegionModal    from './components/RegionModal.vue'
-import ZoneModal      from './components/ZoneModal.vue'
-import RackModal      from './components/RackModal.vue'
-import BatchRackModal from './components/BatchRackModal.vue'
-import SortRuleModal  from './components/SortRuleModal.vue'
-import BoxTypeConfig  from './box-type.vue'
-import NfcManage      from './nfc.vue'
+import { ref, computed, onMounted, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import dayjs from 'dayjs'
+import { ReloadOutlined, AppstoreOutlined, RightOutlined } from '@ant-design/icons-vue'
+import { wmsZoneApi, type ShelfSnStatus } from '@/api/wmsZone'
 
-const activeTab = ref<'racks' | 'box-type' | 'nfc'>('racks')
+const router = useRouter()
 
-// ── 树形数据 ────────────────────────────────────────────────
-const loadingTree = ref(false)
-const regions = ref<Region[]>([])
-const zones = ref<Zone[]>([])
-const treeSelected = ref<string[]>([])
-const selectedRegionId = ref<number | null>(null)
-const selectedZoneId = ref<number | null>(null)
-const selectedZoneName = ref('')
+// ── 日期 ────────────────────────────────────────────────────
+const dateVal = ref<string>(dayjs().format('YYYY-MM-DD'))
 
-interface TreeNode {
-  key: string; name: string; type: 'region' | 'zone'
-  id: number; children?: TreeNode[]
+// ── 分区列表 & 信息 ─────────────────────────────────────────
+const loadingZones = ref(false)
+const zoneNames    = ref<string[]>([])
+
+interface ZoneCardData {
+  name: string
+  loading: boolean
+  need: number
+  prepared: number
+  progressPct: number
+  shelfSnList: ShelfSnStatus[]
 }
 
-const treeData = computed<TreeNode[]>(() =>
-  regions.value.map(r => ({
-    key: `region-${r.id}`, name: r.name, type: 'region' as const, id: r.id,
-    children: zones.value
-      .filter(z => z.regionId === r.id)
-      .map(z => ({ key: `zone-${z.id}`, name: z.name, type: 'zone' as const, id: z.id })),
-  })),
-)
+const zoneInfoMap = reactive<ZoneCardData[]>([])
 
-async function fetchTree() {
-  loadingTree.value = true
+async function fetchZoneNames() {
+  loadingZones.value = true
   try {
-    [regions.value, zones.value] = await Promise.all([regionApi.list(), zoneApi.list()])
-  } finally { loadingTree.value = false }
-}
-
-function onTreeSelect(_keys: unknown, { node }: { node: TreeNode }) {
-  if (node.type === 'region') {
-    selectedRegionId.value = node.id
-    selectedZoneId.value = null
-    selectedZoneName.value = ''
-    racks.value = []
-  } else {
-    selectedRegionId.value = zones.value.find(z => z.id === node.id)?.regionId ?? null
-    selectedZoneId.value = node.id
-    selectedZoneName.value = node.name
-    fetchRacks()
+    zoneNames.value = await wmsZoneApi.getZoneList()
+  } finally {
+    loadingZones.value = false
   }
 }
 
-// ── 货架列表 ────────────────────────────────────────────────
-const loadingRacks = ref(false)
-const racks = ref<PhysicalRack[]>([])
+async function fetchZoneInfoAll() {
+  // 初始化卡片（loading 状态）
+  zoneInfoMap.splice(0, zoneInfoMap.length,
+    ...zoneNames.value.map(name => ({
+      name,
+      loading: true,
+      need: 0,
+      prepared: 0,
+      progressPct: 0,
+      shelfSnList: [],
+    }))
+  )
 
-async function fetchRacks() {
-  if (!selectedZoneId.value) return
-  loadingRacks.value = true
-  try {
-    racks.value = await rackApi.list({ zoneId: selectedZoneId.value })
-  } finally { loadingRacks.value = false }
+  // 并发拉取每个区的信息
+  await Promise.allSettled(
+    zoneNames.value.map(async (name, idx) => {
+      try {
+        const info = await wmsZoneApi.getZoneInfo({
+          zone:      name,
+          zoneShelf: '',
+          type:      -1,
+          date:      dateVal.value,
+        })
+        const total = (info.need ?? 0) + (info.prepared ?? 0)
+        Object.assign(zoneInfoMap[idx], {
+          loading:     false,
+          need:        info.need ?? 0,
+          prepared:    info.prepared ?? 0,
+          progressPct: total > 0 ? Math.round((info.prepared / total) * 100) : 0,
+          shelfSnList: info.shelfSnList ?? [],
+        })
+      } catch {
+        zoneInfoMap[idx].loading = false
+      }
+    })
+  )
 }
 
-async function deleteRack(rack: PhysicalRack) {
-  await rackApi.remove(rack.id)
-  racks.value = racks.value.filter(r => r.id !== rack.id)
-  AMessage.success('已删除')
-}
-
-// ── 弹窗状态 ────────────────────────────────────────────────
-const regionModalOpen  = ref(false)
-const zoneModalOpen    = ref(false)
-const rackModalOpen    = ref(false)
-const batchModalOpen   = ref(false)
-const sortRuleModalOpen= ref(false)
-
-const editingRegion = ref<Region | null>(null)
-const editingZone   = ref<Zone | null>(null)
-const editingRack   = ref<PhysicalRack | null>(null)
-
-function openRegionModal(r?: Region) { editingRegion.value = r ?? null; regionModalOpen.value = true }
-function openZoneModal(z?: Zone)     { editingZone.value   = z ?? null; zoneModalOpen.value   = true }
-function openRackModal(r?: PhysicalRack) { editingRack.value = r ?? null; rackModalOpen.value = true }
-function openBatchModal()    { batchModalOpen.value = true }
-function openSortRuleModal() { sortRuleModalOpen.value = true }
-
-function editNode(node: TreeNode) {
-  if (node.type === 'region') openRegionModal(regions.value.find(r => r.id === node.id))
-  else openZoneModal(zones.value.find(z => z.id === node.id))
-}
-async function deleteNode(node: TreeNode) {
-  if (node.type === 'region') {
-    await regionApi.remove(node.id)
-    regions.value = regions.value.filter(r => r.id !== node.id)
-  } else {
-    await zoneApi.remove(node.id)
-    zones.value = zones.value.filter(z => z.id !== node.id)
+async function fetchAll() {
+  await fetchZoneNames()
+  if (zoneNames.value.length > 0) {
+    await fetchZoneInfoAll()
   }
-  AMessage.success('已删除')
 }
 
-function onRegionSaved(r: Region) {
-  const idx = regions.value.findIndex(x => x.id === r.id)
-  idx === -1 ? regions.value.push(r) : (regions.value[idx] = r)
-}
-function onZoneSaved(z: Zone) {
-  const idx = zones.value.findIndex(x => x.id === z.id)
-  idx === -1 ? zones.value.push(z) : (zones.value[idx] = z)
-}
-function onRackSaved(r: PhysicalRack) {
-  const idx = racks.value.findIndex(x => x.id === r.id)
-  idx === -1 ? racks.value.push(r) : (racks.value[idx] = r)
+function onDateChange() {
+  if (zoneNames.value.length > 0) fetchZoneInfoAll()
 }
 
-onMounted(fetchTree)
+// ── 整体统计 ─────────────────────────────────────────────────
+const overallStat = computed(() => {
+  if (zoneInfoMap.length === 0) return null
+  return {
+    totalShelves: zoneInfoMap.reduce((s, z) => s + z.shelfSnList.length, 0),
+    need:         zoneInfoMap.reduce((s, z) => s + z.need, 0),
+    prepared:     zoneInfoMap.reduce((s, z) => s + z.prepared, 0),
+  }
+})
+
+// ── 跳转 ─────────────────────────────────────────────────────
+function goToDetail(zone: string) {
+  router.push({ name: 'ZoneDetail', query: { zone, date: dateVal.value } })
+}
+
+onMounted(fetchAll)
 </script>
 
 <style scoped>
+/* ─── 页面 ─────────────────────────────────────────────────── */
 .rack-page { padding: 24px; background: #f5f6fa; min-height: 100%; }
 
 .page-header {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  margin-bottom: 20px; gap: 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  gap: 16px;
 }
 .page-title { font-size: 22px; font-weight: 600; color: #1a1d23; margin: 0 0 2px; }
 .page-sub   { font-size: 13px; color: #8c92a0; margin: 0; }
-.header-tabs { margin: 0; }
-.header-tabs :deep(.ant-tabs-nav) { margin: 0; }
+.header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
-/* 两列布局 */
-.layout-2col { display: grid; grid-template-columns: 280px 1fr; gap: 16px; }
+/* ─── 概览条 ─────────────────────────────────────────────── */
+.overview-bar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1.5px solid #ebedf2;
+  padding: 14px 24px;
+  margin-bottom: 20px;
+}
+.ov-stat   { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.ov-num    { font-size: 24px; font-weight: 700; color: #1a1d23; }
+.ov-label  { font-size: 12px; color: #8c92a0; }
+.ov-divider{ width: 1px; height: 36px; background: #f0f2f5; }
+.ov-stat.text-blue  .ov-num { color: #1677ff; }
+.ov-stat.text-green .ov-num { color: #52c41a; }
+.ov-stat.text-orange .ov-num{ color: #fa8c16; }
 
-.panel {
-  background: #fff; border-radius: 12px; border: 1.5px solid #ebedf2;
-  overflow: hidden;
-}
-.panel-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 16px; border-bottom: 1px solid #f0f2f5;
-}
-.panel-title { font-size: 14px; font-weight: 600; color: #1a1d23; }
-.panel-title-wrap { display: flex; align-items: center; gap: 8px; }
-.panel-actions { display: flex; gap: 6px; }
+/* ─── 卡片网格 ─────────────────────────────────────────────── */
+.empty-wrap { display: flex; justify-content: center; padding: 80px 0; }
 
-/* 树 */
-.region-tree { padding: 8px 4px; }
-.region-tree :deep(.ant-tree-node-content-wrapper) { width: 100%; }
-.tree-node {
-  display: flex; align-items: center; gap: 6px; width: 100%; padding-right: 4px;
-}
-.node-label { flex: 1; font-size: 13px; color: #1a1d23; }
-.node-badge {
-  font-size: 10px; padding: 1px 5px; border-radius: 3px; flex-shrink: 0;
-}
-.node-badge.region { background: #e8f0fe; color: #1677ff; }
-.node-badge.zone   { background: #f0fef4; color: #389e0d; }
-.node-actions { display: flex; gap: 0; opacity: 0; transition: opacity 0.15s; }
-.tree-node:hover .node-actions { opacity: 1; }
-
-/* 货架网格 */
-.racks-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px; padding: 16px;
+.zone-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
 }
 
-.select-hint {
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; padding: 60px 0; color: #bdc3cc;
+.zone-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1.5px solid #ebedf2;
+  padding: 18px 18px 14px;
+  cursor: pointer;
+  transition: all .2s;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
-.hint-icon { font-size: 36px; margin-bottom: 10px; }
+.zone-card:hover {
+  border-color: #5b72ee;
+  box-shadow: 0 6px 20px rgba(91,114,238,.16);
+  transform: translateY(-3px);
+}
+
+/* 卡头 */
+.zone-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.zone-name-wrap { display: flex; align-items: center; gap: 10px; }
+.zone-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #5b72ee, #9b6ee8);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 18px;
+  flex-shrink: 0;
+}
+.zone-name        { font-size: 17px; font-weight: 600; color: #1a1d23; }
+.zone-shelf-count { font-size: 12px; color: #8c92a0; }
+
+/* 统计行 */
+.zone-stats {
+  display: flex;
+  align-items: center;
+  background: #f8f9fc;
+  border-radius: 8px;
+  padding: 10px 0;
+}
+.zone-stat         { flex: 1; text-align: center; }
+.zone-stat-divider { width: 1px; height: 28px; background: #ebedf2; }
+.zs-num   { display: block; font-size: 18px; font-weight: 700; color: #1a1d23; }
+.zs-label { font-size: 11px; color: #8c92a0; }
+.text-blue  { color: #1677ff; }
+.text-green { color: #52c41a; }
+
+/* 货架点阵 */
+.shelf-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+}
+.shelf-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  transition: transform .15s;
+}
+.shelf-dot:hover  { transform: scale(1.4); }
+.dot-done         { background: #52c41a; }
+.dot-picking      { background: #1677ff; }
+.dots-more        { font-size: 11px; color: #8c92a0; }
+
+/* 卡脚 */
+.zone-card-foot {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #f5f6fa;
+  padding-top: 8px;
+}
+.view-detail-btn {
+  font-size: 12px;
+  color: #8c92a0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color .15s;
+}
+.zone-card:hover .view-detail-btn { color: #5b72ee; }
 </style>

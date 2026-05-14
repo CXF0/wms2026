@@ -58,6 +58,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '分区配置', icon: 'rack', roles: ['admin'] },
       },
       {
+        path: 'rack-config/zone-detail',
+        name: 'ZoneDetail',
+        component: () => import('@/views/rack-config/zone-detail.vue'),
+        meta: { title: '分区详情', icon: 'zone', roles: ['admin'] },
+      },
+      {
         path: 'box-type',
         name: 'BoxType',
         component: () => import('@/views/rack-config/box-type.vue'),

@@ -15,6 +15,10 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-sm { font-size: 14px; }
+.icon-md { font-size: 18px; }
+.icon-lg { font-size: 24px; }
+.icon-xl { font-size: 32px; }
 /* ============================================================
    WMS 全局样式 — 蓝色毛玻璃工业风
    import '@/styles/global.css' in main.ts
