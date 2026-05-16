@@ -1,10 +1,8 @@
 <template>
   <div class="app-shell">
-    <div class="bg-gradient" />
+    <div class="bg-grid" />
     <div class="layout-body">
-      <!-- 侧边栏：独立悬浮卡片 -->
       <SideMenu />
-      <!-- 右侧：顶栏 + 内容 -->
       <div class="main-area">
         <TopBar />
         <main class="page-content">
@@ -24,50 +22,59 @@ import TopBar from './TopBar.vue'
 .app-shell {
   min-height: 100vh;
   position: relative;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', Roboto, sans-serif;
+  overflow: hidden;
 }
 
-/* 全局蓝色渐变背景 */
-.bg-gradient {
+.bg-grid {
   position: fixed;
   inset: 0;
-  background: linear-gradient(145deg, #d6ecfa 0%, #bfe0f5 35%, #c8e8fd 65%, #dff2ff 100%);
+  background:
+    radial-gradient(circle at 18% 12%, rgba(0, 143, 90, 0.28), transparent 25%),
+    radial-gradient(circle at 84% 8%, rgba(255, 159, 28, 0.24), transparent 22%),
+    radial-gradient(circle at 82% 92%, rgba(0, 86, 55, 0.18), transparent 28%),
+    linear-gradient(135deg, #132821 0%, #ecf5ec 34%, #f7f5ef 66%, #fff4df 100%);
   z-index: 0;
 }
 
-/* 整体布局：给四周留白，侧边栏和内容区悬浮其上 */
+.bg-grid::after {
+  position: absolute;
+  inset: 18px;
+  content: '';
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 32px;
+  pointer-events: none;
+}
+
 .layout-body {
   position: relative;
   z-index: 1;
   display: flex;
   gap: 16px;
-  padding: 16px;
   min-height: 100vh;
-  box-sizing: border-box;
+  padding: 18px;
 }
 
-/* 右侧主区域 */
 .main-area {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0;
   min-width: 0;
-  /* 顶栏 + 内容共同组成一个圆角卡片容器 */
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  border-radius: 18px;
-  box-shadow: 0 4px 24px rgba(30, 100, 200, 0.08);
+  height: calc(100vh - 36px);
   overflow: hidden;
+  background: rgba(255, 253, 248, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 28px;
+  box-shadow: var(--wms-shadow-md);
+  backdrop-filter: blur(18px);
 }
 
-/* 页面内容区 */
 .page-content {
   flex: 1;
-  padding: 24px;
+  min-height: 0;
+  padding: 20px;
   overflow-y: auto;
-  background: transparent;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 248, 0.55), rgba(247, 245, 239, 0.96)),
+    var(--wms-bg);
 }
 </style>

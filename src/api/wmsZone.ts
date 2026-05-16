@@ -1,3 +1,4 @@
+import type { AxiosRequestConfig } from 'axios'
 import http from '@/utils/http'
 
 // ─── 请求参数类型 ─────────────────────────────────────────────
@@ -169,8 +170,8 @@ export const wmsZoneApi = {
     http.post<string[]>('/wms/zone/list', qo ?? {}),
 
   /** 获取某个区的信息（货架号列表） */
-  getZoneInfo: (qo: ZoneInfoQo) =>
-    http.post<PrepareShelfSnVo>('/wms/zone/info/new', qo),
+  getZoneInfo: (qo: ZoneInfoQo, cfg?: AxiosRequestConfig & { silent?: boolean }) =>
+    http.post<PrepareShelfSnVo>('/wms/zone/info/new', qo, cfg),
 
   /** 获取区货架号的商品信息 */
   getZoneItemInfo: (qo: ZoneItemQo) =>
