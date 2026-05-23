@@ -1,14 +1,11 @@
 <template>
   <div class="app-shell">
-    <div class="bg-grid" />
-    <div class="layout-body">
-      <SideMenu />
-      <div class="main-area">
-        <TopBar />
-        <main class="page-content">
-          <RouterView />
-        </main>
-      </div>
+    <SideMenu />
+    <div class="main-area">
+      <TopBar />
+      <main class="page-content">
+        <RouterView />
+      </main>
     </div>
   </div>
 </template>
@@ -21,60 +18,32 @@ import TopBar from './TopBar.vue'
 <style scoped>
 .app-shell {
   min-height: 100vh;
-  position: relative;
-  overflow: hidden;
-}
-
-.bg-grid {
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(circle at 18% 12%, rgba(0, 143, 90, 0.28), transparent 25%),
-    radial-gradient(circle at 84% 8%, rgba(255, 159, 28, 0.24), transparent 22%),
-    radial-gradient(circle at 82% 92%, rgba(0, 86, 55, 0.18), transparent 28%),
-    linear-gradient(135deg, #132821 0%, #ecf5ec 34%, #f7f5ef 66%, #fff4df 100%);
-  z-index: 0;
-}
-
-.bg-grid::after {
-  position: absolute;
-  inset: 18px;
-  content: '';
-  border: 1px solid rgba(255, 255, 255, 0.38);
-  border-radius: 32px;
-  pointer-events: none;
-}
-
-.layout-body {
-  position: relative;
-  z-index: 1;
   display: flex;
-  gap: 16px;
-  min-height: 100vh;
-  padding: 18px;
+  background:
+    linear-gradient(rgba(16, 185, 129, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 185, 129, 0.07) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(255, 255, 255, 0) 34%),
+    #fff;
+  background-size: 96px 96px, 96px 96px, auto, auto;
 }
 
 .main-area {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  height: calc(100vh - 36px);
-  overflow: hidden;
-  background: rgba(255, 253, 248, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  border-radius: 28px;
-  box-shadow: var(--wms-shadow-md);
-  backdrop-filter: blur(18px);
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.86);
+  border-left: 1px solid var(--wms-line);
 }
 
 .page-content {
   flex: 1;
   min-height: 0;
-  padding: 20px;
   overflow-y: auto;
+  padding: 10px 22px;
   background:
-    linear-gradient(180deg, rgba(255, 253, 248, 0.55), rgba(247, 245, 239, 0.96)),
-    var(--wms-bg);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(250, 250, 250, 0.96)),
+    transparent;
 }
 </style>

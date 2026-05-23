@@ -11,16 +11,16 @@ import { theme as antTheme } from 'ant-design-vue'
 const antdTheme = computed(() => ({
   algorithm: antTheme.defaultAlgorithm,
   token: {
-    colorPrimary: '#008f5a',
-    colorLink: '#008f5a',
-    borderRadius: 12,
+    colorPrimary: '#10b981',
+    colorLink: '#059669',
+    borderRadius: 10,
     fontFamily:
       'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif',
-    colorBgContainer: '#fffdf8',
-    colorBorder: '#e8e0d4',
-    colorText: '#12241c',
-    colorTextSecondary: '#6c7a70',
-    boxShadow: '0 16px 34px rgba(21, 52, 39, 0.08)',
+    colorBgContainer: '#ffffff',
+    colorBorder: '#e5e7eb',
+    colorText: '#18181b',
+    colorTextSecondary: '#71717a',
+    boxShadow: '0 12px 24px rgba(24, 24, 27, 0.06)',
   },
 }))
 </script>

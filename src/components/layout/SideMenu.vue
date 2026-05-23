@@ -1,91 +1,72 @@
 <template>
   <aside class="sidebar" :class="{ collapsed: appStore.collapsed }">
-    <div class="sidebar-logo">
-      <div class="logo-mark">
-        <span>✱</span>
-      </div>
+    <div class="brand">
+      <div class="brand-mark" />
       <transition name="fade">
-        <div v-if="!appStore.collapsed" class="logo-text">
-          <span class="logo-title">鲜花 WMS</span>
-          <span class="logo-sub">Flow Warehouse</span>
+        <div v-if="!appStore.collapsed" class="brand-copy">
+          <strong>Protocol WMS</strong>
+          <span>Flower Warehouse</span>
         </div>
       </transition>
     </div>
 
-    <nav class="sidebar-nav">
-      <div v-for="item in menuItems" :key="item.key" class="nav-group">
+    <nav class="nav">
+      <section v-for="group in menuItems" :key="group.key" class="nav-section">
         <button
-          v-if="!item.children?.length"
-          class="nav-item"
-          :class="{ active: isActive(item.key) }"
+          v-if="!group.children?.length"
           type="button"
-          @click="navigate(item.key)"
+          class="nav-link"
+          :class="{ active: isActive(group.key) }"
+          @click="navigate(group.key)"
         >
-          <i class="iconfont nav-icon" :class="item.icon" />
-          <transition name="fade">
-            <span v-if="!appStore.collapsed" class="nav-label">{{ item.label }}</span>
-          </transition>
-          <span v-if="!appStore.collapsed && isActive(item.key)" class="active-dot" />
+          <i class="iconfont nav-icon" :class="group.icon" />
+          <span v-if="!appStore.collapsed">{{ group.label }}</span>
         </button>
 
         <template v-else>
           <button
-            class="nav-item nav-parent"
-            :class="{ 'is-open': openGroups.includes(item.key), 'has-active': hasActiveChild(item) }"
             type="button"
-            @click="toggleGroup(item.key)"
+            class="nav-link nav-parent"
+            :class="{ active: hasActiveChild(group), open: openGroupKey === group.key }"
+            @click="toggleGroup(group.key)"
           >
-            <i class="iconfont nav-icon" :class="item.icon" />
-            <transition name="fade">
-              <span v-if="!appStore.collapsed" class="nav-label">{{ item.label }}</span>
-            </transition>
-            <transition name="fade">
-              <i
-                v-if="!appStore.collapsed"
-                class="iconfont icon-a-xiala2 nav-arrow"
-                :class="{ rotated: openGroups.includes(item.key) }"
-              />
-            </transition>
+            <i class="iconfont nav-icon" :class="group.icon" />
+            <span v-if="!appStore.collapsed">{{ group.label }}</span>
+            <i v-if="!appStore.collapsed" class="iconfont icon-a-xiala2 nav-arrow" />
           </button>
 
-          <transition name="expand">
-            <div v-if="!appStore.collapsed && openGroups.includes(item.key)" class="nav-children">
-              <button
-                v-for="child in item.children"
-                :key="child.key"
-                class="nav-child"
-                :class="{ active: isActive(child.key) }"
-                type="button"
-                @click="navigate(child.key)"
-              >
-                <span class="child-line" />
-                <span>{{ child.label }}</span>
-              </button>
-            </div>
-          </transition>
+          <div
+            v-if="!appStore.collapsed"
+            class="nav-children"
+            :class="{ open: openGroupKey === group.key }"
+            :style="{ '--child-count': group.children.length }"
+          >
+            <button
+              v-for="child in group.children"
+              :key="child.key"
+              type="button"
+              class="nav-child"
+              :class="{ active: isActive(child.key) }"
+              @click="navigate(child.key)"
+            >
+              {{ child.label }}
+            </button>
+          </div>
         </template>
-      </div>
+      </section>
     </nav>
 
-    <div class="sidebar-card" v-if="!appStore.collapsed">
-      <span class="card-label">今日节奏</span>
-      <strong>分拣高峰</strong>
-      <p>优先关注待发货与异常货位</p>
-    </div>
-
-    <div class="sidebar-bottom">
+    <div class="sidebar-footer">
       <button class="collapse-btn" type="button" @click="appStore.toggleCollapsed()">
         <i class="iconfont icon-a-xiala2" :class="appStore.collapsed ? 'rotate-left' : 'rotate-right'" />
-        <transition name="fade">
-          <span v-if="!appStore.collapsed">收起导航</span>
-        </transition>
+        <span v-if="!appStore.collapsed">收起导航</span>
       </button>
     </div>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
@@ -104,20 +85,14 @@ const appStore = useAppStore()
 const userStore = useUserStore()
 const route = useRoute()
 const router = useRouter()
-const openGroups = ref<string[]>([])
+const openGroupKey = ref<string | null>(null)
 
 const ALL_MENUS: MenuItem[] = [
   {
-    key: 'dashboard-group',
-    label: '运营看板',
+    key: '/dashboard',
+    label: '仓库看板',
     icon: 'icon-paihangbang',
     roles: ['admin', 'region_mgr'],
-    children: [
-      { key: '/dashboard', label: '数据总览' },
-      { key: '/dashboard/transport', label: '集货运输' },
-      { key: '/dashboard/picking', label: '配货效能' },
-      { key: '/dashboard/packing', label: '打包发货' },
-    ],
   },
   {
     key: 'rack-group',
@@ -163,10 +138,10 @@ const ALL_MENUS: MenuItem[] = [
     ],
   },
   {
-    key: 'staff-group',
+    key: 'people-group',
     label: '人员管理',
     icon: 'icon-guanliyuan',
-    roles: ['admin', 'region_mgr'],
+    roles: ['admin'],
     children: [
       { key: '/staff/accounts', label: '账户管理' },
       { key: '/staff/groups', label: '分组管理' },
@@ -174,11 +149,16 @@ const ALL_MENUS: MenuItem[] = [
       { key: '/staff/recruit', label: '兼职招聘' },
     ],
   },
-  { key: '/proxy', label: '代配管理', icon: 'icon-daimaidan', roles: ['admin', 'region_mgr'], children: [] },
+  {
+    key: '/proxy',
+    label: '代配管理',
+    icon: 'icon-daiban',
+    roles: ['admin', 'region_mgr'],
+  },
   {
     key: 'salary-group',
     label: '工资管理',
-    icon: 'icon-tijiaoyanzi',
+    icon: 'icon-qianbao',
     roles: ['admin'],
     children: [
       { key: '/salary/monthly', label: '月度汇总' },
@@ -187,10 +167,10 @@ const ALL_MENUS: MenuItem[] = [
     ],
   },
   {
-    key: 'supply-group',
+    key: 'material-group',
     label: '物资管理',
-    icon: 'icon-fenxiang1',
-    roles: ['admin', 'supply_mgr'],
+    icon: 'icon-kabao',
+    roles: ['admin', 'logistics'],
     children: [
       { key: '/supply/stock', label: '库存管理' },
       { key: '/supply/inbound', label: '采购入库' },
@@ -201,43 +181,49 @@ const ALL_MENUS: MenuItem[] = [
   {
     key: 'permission-group',
     label: '角色权限',
-    icon: 'icon-anquan',
+    icon: 'icon-guanliyuan',
     roles: ['admin'],
     children: [
       { key: '/permission/roles', label: '角色管理' },
       { key: '/permission/perms', label: '权限管理' },
     ],
   },
-  { key: '/app-version', label: 'APP 版本', icon: 'icon-kuguanfahuo', roles: ['admin'], children: [] },
+  {
+    key: '/app-version',
+    label: 'APP 版本',
+    icon: 'icon-shezhi',
+    roles: ['admin'],
+  },
 ]
 
-const menuItems = computed(() => {
-  const role = userStore.role
-  if (!role) return []
-  return ALL_MENUS.filter((m) => !m.roles || m.roles.includes(role))
-})
+const menuItems = computed(() =>
+  ALL_MENUS.filter((item) => !item.roles || item.roles.includes(userStore.role)),
+)
 
-const isActive = (key: string) => route.path === key || route.path.startsWith(key + '/')
-const hasActiveChild = (item: MenuItem) => item.children?.some((c) => isActive(c.key))
+function isActive(key: string) {
+  return route.path === key
+}
+
+function hasActiveChild(item: MenuItem) {
+  return Boolean(item.children?.some((child) => route.path === child.key))
+}
 
 function toggleGroup(key: string) {
-  const i = openGroups.value.indexOf(key)
-  if (i === -1) openGroups.value.push(key)
-  else openGroups.value.splice(i, 1)
+  if (appStore.collapsed) return
+  openGroupKey.value = openGroupKey.value === key ? null : key
 }
 
 function navigate(key: string) {
-  if (key.startsWith('/')) router.push(key)
+  const isLeafMenu = menuItems.value.some((item) => item.key === key && !item.children?.length)
+  if (isLeafMenu) openGroupKey.value = null
+  if (key !== route.path) router.push(key)
 }
 
 watch(
   () => route.path,
-  (path) => {
-    for (const item of menuItems.value) {
-      if (item.children?.some((c) => path === c.key || path.startsWith(c.key + '/'))) {
-        if (!openGroups.value.includes(item.key)) openGroups.value.push(item.key)
-      }
-    }
+  () => {
+    const current = menuItems.value.find((item) => item.children?.some((child) => child.key === route.path))
+    openGroupKey.value = current?.key ?? null
   },
   { immediate: true },
 )
@@ -245,268 +231,214 @@ watch(
 
 <style scoped>
 .sidebar {
-  width: 248px;
-  height: calc(100vh - 36px);
+  width: 280px;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  overflow: hidden;
-  padding: 14px;
-  background:
-    radial-gradient(circle at 20% 2%, rgba(255, 159, 28, 0.28), transparent 22%),
-    linear-gradient(180deg, #fffdf8 0%, #f4f7ee 100%);
-  border: 1px solid rgba(255, 255, 255, 0.76);
-  border-radius: 28px;
-  box-shadow: var(--wms-shadow-md);
-  transition: width 0.22s ease;
+  border-right: 1px solid var(--wms-line);
+  background: rgba(255, 255, 255, 0.94);
+  transition: width 0.2s ease;
 }
 
 .sidebar.collapsed {
-  width: 78px;
+  width: 84px;
 }
 
-.sidebar-logo {
+.brand {
+  height: 76px;
   display: flex;
   align-items: center;
-  gap: 11px;
-  min-height: 52px;
-  padding: 6px 8px 18px;
+  gap: 12px;
+  padding: 0 32px;
 }
 
-.logo-mark {
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
+.collapsed .brand {
+  justify-content: center;
+  padding: 0;
+}
+
+.brand-mark {
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
-  border-radius: 14px;
+  border-radius: 8px 8px 8px 2px;
   background: var(--wms-primary);
-  color: #fff;
-  box-shadow: var(--wms-shadow-glow);
 }
 
-.logo-mark span {
-  font-size: 24px;
-  line-height: 1;
+.brand-copy strong,
+.brand-copy span {
+  display: block;
 }
 
-.logo-text {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.logo-title {
+.brand-copy strong {
   color: var(--wms-text);
-  font-size: 17px;
-  font-weight: 800;
-  line-height: 1.2;
+  font-size: 20px;
+  font-weight: 850;
 }
 
-.logo-sub {
-  color: var(--wms-text-soft);
-  font-size: 11px;
-  line-height: 1.4;
+.brand-copy span {
+  margin-top: 2px;
+  color: var(--wms-text-muted);
+  font-size: 12px;
 }
 
-.sidebar-nav {
+.nav {
   flex: 1;
-  min-height: 0;
-  overflow: auto;
-  padding: 2px 0 8px;
+  overflow-y: auto;
+  padding: 22px 20px;
 }
 
-.nav-group + .nav-group {
-  margin-top: 3px;
+.nav-section + .nav-section {
+  margin-top: 4px;
 }
 
-.nav-item,
+.nav-link,
 .nav-child,
 .collapse-btn {
   width: 100%;
-  display: flex;
-  align-items: center;
   border: 0;
   background: transparent;
+  color: var(--wms-text-muted);
   cursor: pointer;
   font: inherit;
   text-align: left;
 }
 
-.nav-item {
+.nav-link {
   position: relative;
-  gap: 10px;
-  min-height: 42px;
-  padding: 9px 10px;
-  border-radius: 15px;
-  color: #52645a;
-  transition:
-    background 0.16s ease,
-    color 0.16s ease,
-    transform 0.16s ease;
-}
-
-.nav-item:hover {
-  background: rgba(0, 143, 90, 0.08);
-  color: var(--wms-primary-strong);
-  transform: translateX(2px);
-}
-
-.nav-item.active,
-.nav-item.has-active {
-  background: #e8f5ed;
-  color: var(--wms-primary-strong);
-  box-shadow: inset 0 0 0 1px rgba(0, 143, 90, 0.08);
-}
-
-.nav-icon {
-  width: 22px;
-  height: 22px;
-  display: inline-flex;
+  height: 42px;
+  display: flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: inherit;
-}
-
-.nav-label {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 13px;
+  gap: 12px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 14px;
   font-weight: 650;
 }
 
-.active-dot {
-  width: 7px;
-  height: 7px;
+.nav-link::before,
+.nav-child::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 9px;
+  bottom: 9px;
+  width: 2px;
   border-radius: 999px;
+  background: transparent;
+}
+
+.nav-link:hover,
+.nav-link.active,
+.nav-link.open,
+.nav-child:hover,
+.nav-child.active {
+  background: #f4f4f5;
+  color: var(--wms-text);
+}
+
+.nav-link.active::before,
+.nav-link.open::before,
+.nav-child.active::before {
   background: var(--wms-primary);
-  box-shadow: 0 0 0 4px rgba(0, 143, 90, 0.1);
+}
+
+.nav-icon {
+  width: 18px;
+  color: inherit;
+  font-size: 17px;
 }
 
 .nav-arrow {
+  margin-left: auto;
   color: var(--wms-text-soft);
-  font-size: 10px;
+  font-size: 12px;
+  transform: rotate(0deg);
   transition: transform 0.18s ease;
 }
 
-.nav-arrow.rotated {
+.nav-parent.open .nav-arrow {
   transform: rotate(180deg);
 }
 
 .nav-children {
-  margin: 4px 0 8px 31px;
-  padding-left: 12px;
-  border-left: 1px solid rgba(0, 143, 90, 0.14);
+  position: relative;
+  max-height: 0;
+  margin: 0 0 0 18px;
+  padding-left: 16px;
+  overflow: hidden;
+  border-left: 1px solid transparent;
+  opacity: 0;
+  transform: translateY(-4px);
+  will-change: max-height, opacity, transform;
+  transition:
+    max-height 0.24s cubic-bezier(0.2, 0, 0, 1),
+    margin 0.24s cubic-bezier(0.2, 0, 0, 1),
+    opacity 0.16s ease,
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.nav-children.open {
+  max-height: calc(var(--child-count) * 38px + 14px);
+  margin: 4px 0 10px 18px;
+  border-left-color: var(--wms-line);
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .nav-child {
-  gap: 8px;
-  min-height: 32px;
-  padding: 6px 8px;
-  border-radius: 12px;
-  color: #77847a;
-  font-size: 12.5px;
-  transition:
-    background 0.16s ease,
-    color 0.16s ease;
-}
-
-.nav-child:hover,
-.nav-child.active {
-  color: var(--wms-primary-strong);
-  background: rgba(255, 159, 28, 0.13);
-}
-
-.child-line {
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
-  background: currentColor;
-  opacity: 0.65;
-}
-
-.sidebar-card {
-  margin: 6px 0 12px;
-  padding: 14px;
-  border-radius: 20px;
-  background:
-    linear-gradient(135deg, rgba(255, 159, 28, 0.24), rgba(0, 143, 90, 0.14)),
-    #fff8ea;
-  border: 1px solid rgba(255, 159, 28, 0.2);
-}
-
-.card-label,
-.sidebar-card p {
-  color: #826a45;
-  font-size: 11px;
-}
-
-.sidebar-card strong {
+  position: relative;
+  height: 34px;
   display: block;
-  margin: 4px 0;
-  color: var(--wms-text);
-  font-size: 15px;
+  padding: 0 12px;
+  border-radius: 9px;
+  font-size: 14px;
 }
 
-.sidebar-card p {
-  margin: 0;
-  line-height: 1.5;
+.nav-child + .nav-child {
+  margin-top: 4px;
 }
 
-.sidebar-bottom {
-  padding-top: 10px;
-  border-top: 1px solid rgba(0, 143, 90, 0.1);
+.sidebar-footer {
+  padding: 16px 20px 24px;
+  border-top: 1px solid var(--wms-line);
 }
 
 .collapse-btn {
-  gap: 10px;
-  justify-content: center;
   height: 40px;
-  padding: 0 10px;
-  border-radius: 15px;
-  color: var(--wms-text-muted);
-  transition:
-    background 0.16s ease,
-    color 0.16s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--wms-line);
+  border-radius: 999px;
+  color: var(--wms-text);
+  font-weight: 750;
 }
 
 .collapse-btn:hover {
-  background: rgba(0, 143, 90, 0.08);
+  border-color: rgba(16, 185, 129, 0.42);
   color: var(--wms-primary-strong);
 }
 
 .rotate-right {
-  transform: rotate(-90deg);
+  transform: rotate(90deg);
 }
 
 .rotate-left {
-  transform: rotate(90deg);
+  transform: rotate(-90deg);
 }
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.12s ease;
+  transition: all 0.18s ease;
 }
 
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-
-.expand-enter-active,
-.expand-leave-active {
-  transition:
-    opacity 0.16s ease,
-    transform 0.16s ease;
-}
-
-.expand-enter-from,
-.expand-leave-to {
-  opacity: 0;
-  transform: translateY(-3px);
+  transform: translateY(-4px);
 }
 </style>

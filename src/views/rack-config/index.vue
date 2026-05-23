@@ -137,7 +137,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, reactive } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import dayjs from 'dayjs'
 import { AppstoreOutlined, ReloadOutlined, RightOutlined } from '@ant-design/icons-vue'
@@ -270,44 +270,35 @@ onMounted(fetchAll)
   align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
-  padding: 24px;
-  margin-bottom: 16px;
-  border: 1px solid rgba(232, 224, 212, 0.78);
-  border-radius: 30px;
+  padding: 40px 0 34px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--wms-line);
   background:
-    radial-gradient(circle at 84% 18%, rgba(255, 159, 28, 0.24), transparent 28%),
-    radial-gradient(circle at 10% 18%, rgba(0, 143, 90, 0.16), transparent 28%),
-    rgba(255, 253, 248, 0.9);
-  box-shadow: var(--wms-shadow-sm);
+    linear-gradient(rgba(16, 185, 129, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 185, 129, 0.08) 1px, transparent 1px);
+  background-size: 96px 96px;
 }
 
 .eyebrow {
-  display: inline-flex;
-  align-items: center;
-  height: 24px;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: var(--wms-primary-soft);
   color: var(--wms-primary-strong);
-  font-size: 11px;
-  font-weight: 850;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .rack-hero h1 {
-  margin: 12px 0 0;
+  margin: 14px 0 0;
   color: var(--wms-text);
-  font-size: 32px;
+  font-size: 40px;
   font-weight: 850;
   letter-spacing: 0;
 }
 
 .rack-hero p {
-  max-width: 600px;
-  margin: 8px 0 0;
+  max-width: 680px;
+  margin: 12px 0 0;
   color: var(--wms-text-muted);
-  line-height: 1.7;
+  font-size: 17px;
+  line-height: 1.8;
 }
 
 .hero-actions {
@@ -318,40 +309,37 @@ onMounted(fetchAll)
 }
 
 .date-picker {
-  width: 144px;
+  width: 148px;
 }
 
 .refresh-btn {
   height: 36px;
-  font-weight: 700;
+  border-radius: 999px;
+  font-weight: 750;
 }
 
 .overview-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .overview-card {
   min-height: 112px;
   padding: 18px;
-  border: 1px solid rgba(232, 224, 212, 0.82);
-  border-radius: 24px;
-  background: rgba(255, 253, 248, 0.9);
-  box-shadow: var(--wms-shadow-sm);
+  border: 1px solid var(--wms-line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--wms-shadow-xs);
 }
 
 .overview-card.accent {
-  background:
-    radial-gradient(circle at 88% 12%, rgba(255, 159, 28, 0.26), transparent 30%),
-    rgba(255, 253, 248, 0.92);
+  background: linear-gradient(135deg, rgba(24, 24, 27, 0.08), #fff 58%);
 }
 
 .overview-card.success {
-  background:
-    radial-gradient(circle at 88% 12%, rgba(0, 143, 90, 0.18), transparent 30%),
-    rgba(255, 253, 248, 0.92);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), #fff 58%);
 }
 
 .metric-label,
@@ -376,9 +364,9 @@ onMounted(fetchAll)
   gap: 12px;
   padding: 14px 16px;
   margin-bottom: 16px;
-  border: 1px solid rgba(255, 159, 28, 0.28);
-  border-radius: 20px;
-  background: rgba(255, 241, 220, 0.72);
+  border: 1px solid rgba(16, 185, 129, 0.24);
+  border-radius: 16px;
+  background: var(--wms-primary-soft);
 }
 
 .notice-dot {
@@ -387,8 +375,8 @@ onMounted(fetchAll)
   flex-shrink: 0;
   margin-top: 5px;
   border-radius: 999px;
-  background: var(--wms-accent);
-  box-shadow: 0 0 0 5px rgba(255, 159, 28, 0.16);
+  background: var(--wms-primary);
+  box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.14);
 }
 
 .quiet-notice strong {
@@ -399,7 +387,7 @@ onMounted(fetchAll)
 
 .quiet-notice p {
   margin: 3px 0 0;
-  color: #8b6b3d;
+  color: var(--wms-text-muted);
   font-size: 12.5px;
 }
 
@@ -409,9 +397,9 @@ onMounted(fetchAll)
   place-items: center;
   align-content: center;
   padding: 42px;
-  border: 1px dashed rgba(0, 143, 90, 0.22);
-  border-radius: 30px;
-  background: rgba(255, 253, 248, 0.74);
+  border: 1px dashed rgba(16, 185, 129, 0.3);
+  border-radius: 20px;
+  background: #fff;
   text-align: center;
 }
 
@@ -421,12 +409,12 @@ onMounted(fetchAll)
   display: grid;
   place-items: center;
   margin-bottom: 16px;
-  border-radius: 24px;
+  border-radius: 18px 18px 18px 5px;
   background: var(--wms-primary);
   color: #fff;
   font-size: 28px;
   font-weight: 850;
-  box-shadow: var(--wms-shadow-glow);
+  box-shadow: var(--wms-shadow-md);
 }
 
 .empty-state h2 {
@@ -453,12 +441,10 @@ onMounted(fetchAll)
   flex-direction: column;
   gap: 15px;
   padding: 18px;
-  border: 1px solid rgba(232, 224, 212, 0.82);
-  border-radius: 28px;
-  background:
-    radial-gradient(circle at 90% 10%, rgba(255, 159, 28, 0.14), transparent 28%),
-    rgba(255, 253, 248, 0.9);
-  box-shadow: var(--wms-shadow-sm);
+  border: 1px solid var(--wms-line);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--wms-shadow-xs);
   color: inherit;
   cursor: pointer;
   text-align: left;
@@ -469,9 +455,9 @@ onMounted(fetchAll)
 }
 
 .zone-card:hover {
-  border-color: rgba(0, 143, 90, 0.28);
+  border-color: rgba(16, 185, 129, 0.42);
   box-shadow: var(--wms-shadow-md);
-  transform: translateY(-3px);
+  transform: translateY(-2px);
 }
 
 .zone-card-head,
@@ -497,10 +483,9 @@ onMounted(fetchAll)
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  border-radius: 16px;
-  background: linear-gradient(135deg, var(--wms-primary), var(--wms-primary-strong));
-  color: #fff;
-  box-shadow: 0 14px 26px rgba(0, 143, 90, 0.2);
+  border-radius: 12px;
+  background: var(--wms-primary-soft);
+  color: var(--wms-primary-strong);
 }
 
 .zone-name,
@@ -529,8 +514,8 @@ onMounted(fetchAll)
   flex-shrink: 0;
   border-radius: 999px;
   background:
-    radial-gradient(circle closest-side, #fffdf8 72%, transparent 73%),
-    conic-gradient(var(--wms-primary) calc(var(--pct) * 1%), #efe7da 0);
+    radial-gradient(circle closest-side, #fff 72%, transparent 73%),
+    conic-gradient(var(--wms-primary) calc(var(--pct) * 1%), #e5e7eb 0);
 }
 
 .progress-ring span {
@@ -547,9 +532,9 @@ onMounted(fetchAll)
 
 .zone-stats div {
   padding: 12px 10px;
-  border: 1px solid rgba(232, 224, 212, 0.72);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.56);
+  border: 1px solid var(--wms-line);
+  border-radius: 14px;
+  background: #fafafa;
   text-align: center;
 }
 
@@ -579,20 +564,15 @@ onMounted(fetchAll)
 }
 
 .shelf-dot {
-  --fill: 0;
   aspect-ratio: 1;
   min-width: 9px;
   border-radius: 7px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent),
-    var(--wms-accent-wash);
+  background: #e5e7eb;
   transition: transform 0.15s ease;
 }
 
 .shelf-dot.is-done {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.34), transparent),
-    var(--wms-primary);
+  background: var(--wms-primary);
 }
 
 .shelf-dot:hover {
@@ -609,9 +589,9 @@ onMounted(fetchAll)
   align-items: center;
   min-height: 34px;
   padding: 0 12px;
-  border-radius: 14px;
-  background: rgba(255, 241, 220, 0.72);
-  color: #8b6b3d;
+  border-radius: 12px;
+  background: var(--wms-accent-soft);
+  color: var(--wms-text-muted);
   font-size: 12px;
 }
 
@@ -620,10 +600,10 @@ onMounted(fetchAll)
   gap: 6px;
   margin-top: auto;
   padding-top: 12px;
-  border-top: 1px solid rgba(232, 224, 212, 0.68);
+  border-top: 1px solid var(--wms-line);
   color: var(--wms-text-muted);
   font-size: 12.5px;
-  font-weight: 700;
+  font-weight: 750;
 }
 
 .zone-card:hover .zone-foot {

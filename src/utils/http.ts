@@ -1,4 +1,4 @@
-import axios, { type AxiosInstance, type AxiosResponse, type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios'
+import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
 import { message as AMessage } from 'ant-design-vue'
 import { useUserStore } from '@/stores/user'
 import router from '@/router'
@@ -15,8 +15,21 @@ type RequestConfig = AxiosRequestConfig & {
   silent?: boolean
 }
 
+export class AdminAuthError extends Error {
+  constructor(message = '运营端登录失效') {
+    super(message)
+    this.name = 'AdminAuthError'
+  }
+}
+
 const service: AxiosInstance = axios.create({
   baseURL: '/api',
+  timeout: 15_000,
+  headers: { 'Content-Type': 'application/json;charset=utf-8' },
+})
+
+const adminService: AxiosInstance = axios.create({
+  baseURL: '/api/__admin',
   timeout: 15_000,
   headers: { 'Content-Type': 'application/json;charset=utf-8' },
 })
@@ -52,8 +65,30 @@ service.interceptors.response.use(
       404: '接口不存在',
       500: '服务器错误',
     }
+    if (status === 401) redirectToLogin()
     if (!(error?.config as RequestConfig | undefined)?.silent) {
       AMessage.error(map[status] ?? `网络错误 (${status ?? '超时'})`)
+    }
+    return Promise.reject(error)
+  },
+)
+
+adminService.interceptors.response.use(
+  (res: AxiosResponse<ApiResponse>) => {
+    const { code, message, msg, data } = res.data
+    if (code === 0) return data as unknown as AxiosResponse
+    const errMsg = message || msg || '运营端接口调用失败'
+    if (code === 401) return Promise.reject(new AdminAuthError(errMsg))
+    if (!(res.config as RequestConfig).silent) AMessage.error(errMsg)
+    return Promise.reject(new Error(errMsg))
+  },
+  (error) => {
+    const status = error?.response?.status
+    if (status === 401 || status === 403) {
+      return Promise.reject(new AdminAuthError('运营端登录失效或无权限'))
+    }
+    if (!(error?.config as RequestConfig | undefined)?.silent) {
+      AMessage.error(`运营端接口网络错误 (${status ?? '超时'})`)
     }
     return Promise.reject(error)
   },
@@ -74,6 +109,9 @@ const http = {
   },
   post<T = unknown>(url: string, data?: unknown, cfg?: RequestConfig): Promise<T> {
     return service.post(url, data, cfg) as unknown as Promise<T>
+  },
+  adminPost<T = unknown>(url: string, data?: unknown, cfg?: RequestConfig): Promise<T> {
+    return adminService.post(url, data, cfg) as unknown as Promise<T>
   },
   put<T = unknown>(url: string, data?: unknown, cfg?: RequestConfig): Promise<T> {
     return service.put(url, data, cfg) as unknown as Promise<T>

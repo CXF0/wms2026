@@ -21,7 +21,9 @@ export default defineConfig(({ mode }) => {
           target: 'https://api.xunmengvip.cn',
           changeOrigin: true,
           secure: false,
-          rewrite: (p) => p.replace(/^\/api/, '/xm-bulky-supplier'),
+          rewrite: (p) => p
+            .replace(/^\/api\/__admin/, '/xm-bulky-admin')
+            .replace(/^\/api/, '/xm-bulky-supplier'),
         },
       },
     },

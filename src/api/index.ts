@@ -1,7 +1,7 @@
 import http from '@/utils/http'
 import type {
   LoginParams, UserInfo, Staff, StaffGroup,
-  Region, Zone, Base, CollectionStation,
+  Region, Zone, Base, CollectionStation, StationPageResult,
   PhysicalRack, BoxTypeConfig, NfcCard, ZoneSortRule,
   Session, Order, PageResult, PageParams,
   InspectionRecord, PickingRecord, ProxyApply,
@@ -56,6 +56,10 @@ export const stationApi = {
   list:   (params?: { baseId?: number }) => http.get<CollectionStation[]>('/stations', params),
   create: (data: Omit<CollectionStation, 'id'>) => http.post<CollectionStation>('/stations', data),
   update: (id: number, d: Partial<CollectionStation>) => http.put(`/stations/${id}`, d),
+
+  // 带经纬度的集货站分页列表（运输看板使用）
+  page: (index = 1, size = 200) =>
+    http.post<StationPageResult>('/station/page', { index, size, searchCount: false }),
 }
 
 // ─── 货位管理 ─────────────────────────────────────────────────

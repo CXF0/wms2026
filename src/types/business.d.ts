@@ -60,6 +60,36 @@ export interface CollectionStation {
   status: 'active' | 'inactive'
 }
 
+/** 集货站（真实接口返回，含经纬度和运营配置） */
+export interface StationRecord {
+  id: number
+  name: string
+  shortName: string
+  contactTel: string
+  stationFee: string
+  creditRequire: string
+  sequence: number
+  status: number           // 0=正常
+  latestCheckTime: string  // "HH:mm:ss"
+  lateAutoPunish: number
+  singlePunishAmount: string
+  longitude: string
+  latitude: string
+  address: string
+  adcode: string
+  helper: string           // JSON 字符串
+  createTime: string
+  updateTime: string
+}
+
+export interface StationPageResult {
+  index: number
+  size: number
+  searchCount: boolean
+  total: number
+  records: StationRecord[]
+}
+
 // ============================================================
 //  二、用户与角色
 // ============================================================
